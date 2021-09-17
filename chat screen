@@ -1,0 +1,45 @@
+
+chatReference = db.collection("chats");
+
+
+  Future<Null> _sendMessage({
+    String text,
+    String messageType,
+    String Url,
+  }) async {
+    chatReference.add({
+      'text': text,
+      'sender_id': Admin.modelUser.user.id,
+      'receiver_id': 'x7BGpwqH5ZOFTmYb1NA7VT0vVWG2',
+      'sender_name': Admin.modelUser.user.name,
+      'profile_photo': Admin.modelUser.user.profileImage,
+      'url': Url,
+      'message_type': messageType,
+      'time': Timestamp.now(),
+    }).then((documentReference) {
+      print(documentReference.get().toString());
+      setState(() {});
+    }).catchError((e) {});
+  }
+
+  //***************************************************************//
+
+  Future<void> _listenMessageExchange() async {
+    chatReference.orderBy('time', descending: true).snapshots().listen((event) {
+      chat = [];
+      print("chat screen " + event.docs.length.toString());
+      event.docs.forEach((element) {
+        if (mounted)
+          setState(() {
+            chat.add(Chat.mapToUser(element.data()));
+          });
+      });
+    });
+  }
+  
+  //////////////////////////uploadFireBase///////////////////////
+    Future<String> _uploadFile(File file, String ref) async {
+    final task = await _firebaseStorage.ref().child(ref).putFile(file);
+    final downloadUrl = await task.ref.getDownloadURL();
+    return downloadUrl;
+  }
